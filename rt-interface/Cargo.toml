@@ -1,0 +1,17 @@
+[package]
+name = "rt-interface"
+version = "0.1.0"
+authors = ["lightsing <light.tsing@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "rt_interface"
+crate-type = ["rlib"]
+
+[profile.release]
+lto = true
+
+[dependencies]
+wee_alloc = "0.4"
+serde = { version = "1.0", default-features = false, features = ["alloc"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
