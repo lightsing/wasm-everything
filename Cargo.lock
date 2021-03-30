@@ -221,6 +221,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cstr"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c11a39d776a3b35896711da8a04dc1835169dcd36f710878187637314e47941b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
 name = "darling"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -345,8 +355,11 @@ checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 name = "hello"
 version = "0.1.0"
 dependencies = [
+ "cstr",
+ "log",
  "rt-interface",
  "serde",
+ "we-logger",
  "wee_alloc",
 ]
 
@@ -426,6 +439,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
 dependencies = [
  "cfg-if 1.0.0",
+ "serde",
 ]
 
 [[package]]
@@ -508,6 +522,12 @@ name = "object"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
+
+[[package]]
+name = "once_cell"
+version = "1.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
 
 [[package]]
 name = "pin-project-lite"
@@ -706,9 +726,9 @@ dependencies = [
 name = "rt-interface"
 version = "0.1.0"
 dependencies = [
+ "log",
  "serde",
  "serde_json",
- "wee_alloc",
 ]
 
 [[package]]
@@ -909,8 +929,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "log",
+ "once_cell",
  "pretty_env_logger",
+ "serde",
+ "serde_json",
  "wasmer",
+ "we-logger",
 ]
 
 [[package]]
@@ -1109,6 +1133,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b0fa059022c5dabe129f02b429d67086400deb8277f89c975555dacc1dadbcc"
 dependencies = [
  "wast",
+]
+
+[[package]]
+name = "we-logger"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

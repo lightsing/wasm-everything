@@ -9,6 +9,6 @@ name = "we_logger"
 crate-type = ["rlib"]
 
 [dependencies]
-log = { version = "0.4", features = ["serde"] }
+log = "0.4"
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

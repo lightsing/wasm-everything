@@ -7,15 +7,16 @@ use alloc::borrow::ToOwned;
 
 #[link(wasm_import_module = "__wasm_everything_runtime__")]
 extern "C" {
-    fn log(record_ptr: *const u8, record_len: usize);
+    fn log_proxy(record_ptr: *const u8, record_len: usize);
 }
 
 struct Logger;
 
-const LOGGER: Logger = Logger;
+static LOGGER: &dyn log::Log = &Logger;
 
 pub fn init() {
-    log::set_logger(&LOGGER).unwrap();
+    log::set_logger(LOGGER).unwrap();
+    log::set_max_level(log::LevelFilter::Trace);
 }
 
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
@@ -34,7 +35,7 @@ pub struct Metadata {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-struct Record {
+pub struct Record {
     metadata: Metadata,
     args: String,
     module_path: Option<String>,
@@ -48,12 +49,11 @@ impl log::Log for Logger {
     }
 
     fn log(&self, record: &log::Record) {
-        // should never fail
         let record: Record = record.into();
-        let json = serde_json::to_string(&record).unwrap();
+        let json = serde_json::to_string(&record).unwrap(); // should never fail
         let bytes = json.as_bytes();
         unsafe {
-            log(bytes.as_ptr(), bytes.len())
+            log_proxy(bytes.as_ptr(), bytes.len())
         }
     }
 
@@ -92,5 +92,87 @@ impl <'a> From<&log::Record<'a>> for Record {
             file: r.file().map(|s| s.to_owned()),
             line: r.line()
         }
+    }
+}
+
+impl Into<log::Level> for Level {
+    #[inline]
+    fn into(self) -> log::Level {
+        use Level::*;
+
+        match self {
+            Error => log::Level::Error,
+            Warn => log::Level::Warn,
+            Info => log::Level::Info,
+            Debug => log::Level::Debug,
+            Trace => log::Level::Trace
+        }
+    }
+}
+
+impl Metadata {
+    /// The verbosity level of the message.
+    #[inline]
+    pub fn level(&self) -> log::Level {
+        self.level.into()
+    }
+
+    /// The name of the target of the directive.
+    #[inline]
+    pub fn target(&self) -> &str {
+        self.target.as_str()
+    }
+
+    #[inline]
+    fn into(&self) -> log::Metadata {
+        log::Metadata::builder()
+            .level(self.level.into())
+            .target(self.target.as_str())
+            .build()
+    }
+}
+
+impl Record {
+
+    /// The message body.
+    #[inline]
+    pub fn args(&self) -> &str {
+        self.args.as_str()
+    }
+
+    /// Metadata about the log directive.
+    #[inline]
+    pub fn metadata(&self) -> log::Metadata {
+        (&self.metadata).into()
+    }
+
+    /// The verbosity level of the message.
+    #[inline]
+    pub fn level(&self) -> log::Level {
+        self.metadata.level()
+    }
+
+    /// The name of the target of the directive.
+    #[inline]
+    pub fn target(&self) -> &str {
+        self.metadata.target.as_str()
+    }
+
+    /// The module path of the message.
+    #[inline]
+    pub fn module_path(&self) -> Option<&str> {
+        self.module_path.as_ref().map(|s| s.as_str())
+    }
+
+    /// The source file containing the message.
+    #[inline]
+    pub fn file(&self) -> Option<&str> {
+        self.file.as_ref().map(|s| s.as_str())
+    }
+
+    /// The line containing the message.
+    #[inline]
+    pub fn line(&self) -> Option<u32> {
+        self.line
     }
 }

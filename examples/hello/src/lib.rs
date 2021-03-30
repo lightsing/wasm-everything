@@ -1,5 +1,12 @@
+#[macro_use] extern crate log;
+
+use cstr::cstr;
+use std::ffi::CStr;
 use rt_interface::invoke;
 use serde::{Serialize, Deserialize};
+
+#[no_mangle]
+pub static NAME: &CStr = cstr!(b"hello");
 
 #[derive(Serialize, Clone, Debug)]
 struct Arg {
@@ -11,10 +18,11 @@ struct Response {
     bar: i32,
 }
 
-
 #[no_mangle]
 extern "C" fn hello() {
-    let test_string = String::from("hello world");
+    we_logger::init();
+    error!("log inside wasm");
+    let _test_string = String::from("hello world");
     let result: Result<Response, _> = invoke(
         "hello",
         "add_one",

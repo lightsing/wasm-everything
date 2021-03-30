@@ -6,6 +6,4 @@ extern "C" {
         args_ptr: *const u8, args_len: usize,
         result_ptr: *const u8, result_len: *const usize,
     );
-
-    pub fn terminate() -> !;
 }

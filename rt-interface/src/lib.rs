@@ -1,14 +1,8 @@
 #![no_std]
-#![feature(default_alloc_error_handler)]
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::panic::PanicInfo;
-use core::mem::MaybeUninit;
 use core::ptr::null_mut;
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub type Result<T> = core::result::Result<T, error::Error>;
 
