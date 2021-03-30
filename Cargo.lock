@@ -359,7 +359,6 @@ dependencies = [
  "log",
  "rt-interface",
  "serde",
- "we-logger",
  "wee_alloc",
 ]
 
@@ -729,6 +728,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "we-logger",
 ]
 
 [[package]]

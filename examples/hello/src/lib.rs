@@ -2,11 +2,14 @@
 
 use cstr::cstr;
 use std::ffi::CStr;
-use rt_interface::invoke;
+use rt_interface::{init_logger, invoke};
 use serde::{Serialize, Deserialize};
+use std::sync::Once;
 
 #[no_mangle]
 pub static NAME: &CStr = cstr!(b"hello");
+
+static LOG_INIT: Once = Once::new();
 
 #[derive(Serialize, Clone, Debug)]
 struct Arg {
@@ -20,8 +23,8 @@ struct Response {
 
 #[no_mangle]
 extern "C" fn hello() {
-    we_logger::init();
-    error!("log inside wasm");
+    LOG_INIT.call_once(init_logger);
+    info!("log inside wasm");
     let _test_string = String::from("hello world");
     let result: Result<Response, _> = invoke(
         "hello",

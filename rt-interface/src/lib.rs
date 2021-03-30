@@ -4,6 +4,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr::null_mut;
 
+pub use we_logger::init as init_logger;
 pub type Result<T> = core::result::Result<T, error::Error>;
 
 mod error;
