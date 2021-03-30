@@ -79,7 +79,7 @@ fn invoke(
     let addr = malloc.call(result.len() as i32).unwrap();
     let result = (result_ptr as *mut u8);
 
-    println!("request from {:?}, {} {} {}", env.name(),name, method, args);
+    info!("request from <{:?}>, {} {} {}", env.name().unwrap_or("???"), name, method, args);
 }
 
 fn log_proxy(
@@ -103,15 +103,6 @@ fn log_proxy(
 
 }
 
-fn foo(
-    env: &Env,
-    foo: i32,
-    bar: i32,
-) -> i32 {
-    println!("{}", env.name().unwrap());
-    return foo + bar
-}
-
 fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
 
@@ -131,16 +122,9 @@ fn main() -> anyhow::Result<()> {
         log_proxy
     );
 
-    let foo_function = Function::new_native_with_env(
-        &store,
-        Env::new(),
-        foo
-    );
-
     let mut exports = Exports::new();
     exports.insert("invoke", invoke_function);
     exports.insert("log_proxy", log_function);
-    exports.insert("foo", foo_function);
 
     let import_object = imports! {
         "__wasm_everything_runtime__" => exports
