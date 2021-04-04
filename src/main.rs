@@ -58,9 +58,12 @@ impl Env {
     }
 
     fn get_string(&self, offset: usize, len: usize) -> String {
+        return String::from_utf8(self.get_bytes(offset, len)).unwrap()
+    }
+
+    fn get_bytes(&self, offset: usize, len: usize) -> Vec<u8> {
         let view: MemoryView<u8> = self.memory.get_ref().unwrap().view();
-        let data: Vec<u8> = (&view[offset..offset +len]).iter().map(|u| u.get()).collect();
-        return String::from_utf8(data).unwrap()
+        (&view[offset..offset +len]).iter().map(|u| u.get()).collect()
     }
 }
 
@@ -87,8 +90,8 @@ fn log_proxy(
     record_ptr: i32,
     record_len: i32
 ) {
-    let record_json = env.get_string(record_ptr as usize, record_len as usize);
-    let record : serde_json::Result<Record> = serde_json::from_str(&record_json);
+    let record_serialized = env.get_bytes(record_ptr as usize, record_len as usize);
+    let record : bincode::Result<Record> = bincode::deserialize(&record_serialized);
     match record {
         Ok(record) => log!(
             target: env.name().unwrap_or("???"),

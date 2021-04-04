@@ -29,7 +29,7 @@ extern "C" fn hello() {
     let result: Result<Response, _> = invoke(
         "hello",
         "add_one",
-        vec![Arg { foo: 1 }]
+        Arg { foo: 1 }
     );
     result.unwrap();
 }

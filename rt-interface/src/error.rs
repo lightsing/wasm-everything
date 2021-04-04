@@ -2,11 +2,11 @@ use Error::*;
 
 #[derive(Debug)]
 pub enum Error {
-    SerdeJson(serde_json::Error)
+    Bincode(bincode::Error)
 }
 
-impl From<serde_json::Error> for Error {
-    fn from(e: serde_json::Error) -> Self {
+impl From<bincode::Error> for Error {
+    fn from(e: bincode::Error) -> Self {
         SerdeJson(e)
     }
 }

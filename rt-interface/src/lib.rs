@@ -14,16 +14,14 @@ mod mem;
 pub fn invoke<N, M, A, R>(
     name: N,
     method: M,
-    args: Vec<A>,
+    args: A,
 ) -> Result<R>
 where N: AsRef<str>, M: AsRef<str>, A: serde::Serialize, R: serde::de::DeserializeOwned
 {
     let name_value = name.as_ref().as_bytes();
     let method_value = method.as_ref().as_bytes();
 
-    let args_json = serde_json::to_string(&args)?;
-    let args_value = args_json.as_bytes();
-
+    let args_value = bincode::serialize(&args)?;
 
     unsafe {
         let ptr: *mut u8 = null_mut();

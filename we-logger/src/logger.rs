@@ -21,10 +21,9 @@ impl log::Log for Logger {
 
     fn log(&self, record: &log::Record) {
         let record: Record = record.into();
-        let json = serde_json::to_string(&record).unwrap(); // should never fail
-        let bytes = json.as_bytes();
+        let serialized = bincode::serialize(&record).unwrap(); // should never fail
         unsafe {
-            log_proxy(bytes.as_ptr(), bytes.len())
+            log_proxy(serialized.as_ptr(), serialized.len())
         }
     }
 
