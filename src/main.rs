@@ -123,7 +123,7 @@ fn log_proxy(
         Ok(record) => log!(
             target: env.name().unwrap_or("???"),
             record.level(),
-            "[{:<5}] L{:3}: {}",
+            "[{:<5}:{}]: {}",
             record.module_path().unwrap_or("???"),
             record.line().map_or_else( || "??".to_string(), |l| l.to_string()),
             record.args()
