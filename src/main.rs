@@ -21,7 +21,7 @@ struct Env {
     #[wasmer(export)]
     memory: LazyInit<Memory>,
     #[wasmer(export(name = "_wasm_malloc"))]
-    malloc: LazyInit<NativeFunc<(i32), i32>>,
+    malloc: LazyInit<NativeFunc<i32, i32>>,
     #[wasmer(export(name = "_wasm_free"))]
     free: LazyInit<NativeFunc<(i32, i32)>>,
 }
