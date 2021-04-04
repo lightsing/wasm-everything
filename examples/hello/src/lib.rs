@@ -31,5 +31,5 @@ extern "C" fn hello() {
         "add_one",
         Arg { foo: 1 }
     );
-    result.unwrap();
+    info!("{:?}", result.unwrap());
 }

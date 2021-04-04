@@ -7,7 +7,7 @@ pub enum Error {
 
 impl From<bincode::Error> for Error {
     fn from(e: bincode::Error) -> Self {
-        SerdeJson(e)
+        Bincode(e)
     }
 }
 

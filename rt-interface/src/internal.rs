@@ -4,6 +4,6 @@ extern "C" {
         name_ptr: *const u8, name_len: usize,
         method_ptr: *const u8, method_len: usize,
         args_ptr: *const u8, args_len: usize,
-        result_ptr: *const u8, result_len: *const usize,
+        result_ptr: *mut *mut u8, result_len: *const usize,
     );
 }

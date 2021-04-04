@@ -3,8 +3,10 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use wasmer::{WasmerEnv, Store, Module, Instance, imports, Function, LazyInit, Memory, MemoryView, Exports, NativeFunc, Global};
+use wasmer::{WasmerEnv, Store, Module, Instance, imports, Function, LazyInit, Memory, MemoryView, Exports, NativeFunc, Global, RuntimeError};
 use we_logger::Record;
+
+use serde::{Serialize, Deserialize};
 
 use once_cell::sync::OnceCell;
 
@@ -43,6 +45,22 @@ impl Env {
         std::str::from_utf8_unchecked(&slice[offset..offset + len])
     }
 
+    unsafe fn malloc(&self, size: usize) -> Result<usize, RuntimeError> {
+        let malloc = self.malloc.get_unchecked();
+        malloc.call(size as i32).map(|ret| ret as usize)
+    }
+
+    unsafe fn copy_from_slice(&self, addr: usize, slice: &[u8]) {
+        let memory = self.memory.get_unchecked();
+        let target = &mut memory.data_unchecked_mut()[addr..addr + slice.len()];
+        target.copy_from_slice(slice)
+    }
+
+    unsafe fn write_u32(&self, addr: usize, value: u32) {
+        let buf = std::mem::transmute::<u32, [u8; 4]>(value);
+        self.copy_from_slice(addr, &buf)
+    }
+
     fn name(&self) -> Option<&str> {
         self.name.get_or_init(|| {
             let offset = self.name_ptr.get_ref()?.get().i32()? as usize;
@@ -67,6 +85,11 @@ impl Env {
     }
 }
 
+#[derive(Serialize, Clone, Debug)]
+struct Response {
+    bar: i32,
+}
+
 fn invoke(
     env: &Env,
     name_ptr: i32, name_len: i32,
@@ -77,10 +100,14 @@ fn invoke(
     let name = unsafe { env.get_str_unchecked(name_ptr as usize, name_len as usize) };
     let method = env.get_string(method_ptr as usize, method_len as usize);
     let args = env.get_string(args_ptr as usize, args_len as usize);
-    let malloc = env.malloc.get_ref().unwrap();
-    let result = r#"{ "bar": 1}"#;
-    let addr = malloc.call(result.len() as i32).unwrap();
-    let result = (result_ptr as *mut u8);
+
+    let result = bincode::serialize(&Response { bar: 1 }).unwrap();
+    let addr = unsafe { env.malloc(result.len()).unwrap() };
+    unsafe {
+        env.copy_from_slice(addr, result.as_slice());
+        env.write_u32(result_ptr as usize, addr as u32);
+        env.write_u32(result_len as usize,  result.len() as u32);
+    };
 
     info!("request from <{:?}>, {} {} {}", env.name().unwrap_or("???"), name, method, args);
 }

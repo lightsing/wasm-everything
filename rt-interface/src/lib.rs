@@ -1,7 +1,6 @@
 #![no_std]
 extern crate alloc;
 
-use alloc::vec::Vec;
 use core::ptr::null_mut;
 
 pub use we_logger::init as init_logger;
@@ -24,14 +23,16 @@ where N: AsRef<str>, M: AsRef<str>, A: serde::Serialize, R: serde::de::Deseriali
     let args_value = bincode::serialize(&args)?;
 
     unsafe {
-        let ptr: *mut u8 = null_mut();
+        let mut ptr: *mut u8 = null_mut();
         let mut size: usize = 0;
         internal::invoke(
             name_value.as_ptr(), name_value.len(),
             method_value.as_ptr(), method_value.len(),
             args_value.as_ptr(), args_value.len(),
-            ptr, &mut size as *mut usize
+            &mut ptr, &mut size as *mut usize
         );
+        let result = bincode::deserialize(alloc::slice::from_raw_parts(ptr, size))?;
+        mem::_wasm_free(ptr, size);
+        Ok(result)
     }
-    Ok(serde_json::from_str(r#"{"bar": 1}"#)?)
 }
