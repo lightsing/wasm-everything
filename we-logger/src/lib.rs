@@ -5,19 +5,10 @@ use serde::{Serialize, Deserialize};
 use alloc::string::{String, ToString};
 use alloc::borrow::ToOwned;
 
-#[link(wasm_import_module = "__wasm_everything_runtime__")]
-extern "C" {
-    fn log_proxy(record_ptr: *const u8, record_len: usize);
-}
-
-struct Logger;
-
-static LOGGER: &dyn log::Log = &Logger;
-
-pub fn init() {
-    log::set_logger(LOGGER).unwrap();
-    log::set_max_level(log::LevelFilter::Trace);
-}
+#[cfg(feature = "logger")]
+mod logger;
+#[cfg(feature = "logger")]
+pub use logger::{init, LOGGER};
 
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Hash)]
 pub enum Level {
@@ -41,23 +32,6 @@ pub struct Record {
     module_path: Option<String>,
     file: Option<String>,
     line: Option<u32>,
-}
-
-impl log::Log for Logger {
-    fn enabled(&self, _metadata: &log::Metadata) -> bool {
-        true
-    }
-
-    fn log(&self, record: &log::Record) {
-        let record: Record = record.into();
-        let json = serde_json::to_string(&record).unwrap(); // should never fail
-        let bytes = json.as_bytes();
-        unsafe {
-            log_proxy(bytes.as_ptr(), bytes.len())
-        }
-    }
-
-    fn flush(&self) { }
 }
 
 impl From<log::Level> for Level {

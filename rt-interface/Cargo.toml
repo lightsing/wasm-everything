@@ -10,6 +10,6 @@ crate-type = ["rlib"]
 
 [dependencies]
 log = { version = "0.4", features = ["serde"] }
-we-logger = { path = "../we-logger" }
+we-logger = { path = "../we-logger", features = ["logger"] }
 serde = { version = "1.0", default-features = false, features = ["alloc"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
