@@ -8,9 +8,9 @@ use we_logger::Record;
 
 use serde::{Serialize, Deserialize};
 
-use once_cell::sync::OnceCell;
+use once_cell::sync::{OnceCell, Lazy};
 
-#[derive(WasmerEnv, Clone, Default)]
+#[derive(WasmerEnv, Clone)]
 struct Env {
     #[wasmer(export(name = "NAME"))]
     name_ptr: LazyInit<Global>,
@@ -24,11 +24,19 @@ struct Env {
     malloc: LazyInit<NativeFunc<i32, i32>>,
     #[wasmer(export(name = "_wasm_free"))]
     free: LazyInit<NativeFunc<(i32, i32)>>,
+    channel: tokio::sync::mpsc::UnboundedSender<(String, Vec<u8>)>,
 }
 
 impl Env {
-    fn new() -> Self {
-        Self::default()
+    fn new(channel: tokio::sync::mpsc::UnboundedSender<(String, Vec<u8>)>) -> Self {
+        Self {
+            name_ptr: Default::default(),
+            name: Default::default(),
+            memory: Default::default(),
+            malloc: Default::default(),
+            free: Default::default(),
+            channel
+        }
     }
 
     unsafe fn deref(&self, offset: usize) -> usize {
@@ -112,29 +120,33 @@ fn invoke(
     info!("request from <{:?}>, {} {} {}", env.name().unwrap_or("???"), name, method, args);
 }
 
-fn log_proxy(
-    env: &Env,
-    record_ptr: i32,
-    record_len: i32
-) {
+fn log_proxy(env: &Env, record_ptr: i32, record_len: i32) {
     let record_serialized = env.get_bytes(record_ptr as usize, record_len as usize);
-    let record : bincode::Result<Record> = bincode::deserialize(&record_serialized);
-    match record {
-        Ok(record) => log!(
-            target: env.name().unwrap_or("???"),
-            record.level(),
-            "[{:<5}:{}]: {}",
-            record.module_path().unwrap_or("???"),
-            record.line().map_or_else( || "??".to_string(), |l| l.to_string()),
-            record.args()
-        ),
-        Err(e) => error!("cannot log module <{}>: {}", env.name().unwrap_or("???"), e)
-    }
-
+    let name = env.name().unwrap_or("???").to_string();
+    env.channel.send((name, record_serialized));
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
+
+    let (log_channel_tx, mut log_channel_rx) = tokio::sync::mpsc::unbounded_channel::<(String, Vec<u8>)>();
+    tokio::spawn(async move {
+       while let Some((name, record_serialized)) = log_channel_rx.recv().await {
+           let record : bincode::Result<Record> = bincode::deserialize(&record_serialized);
+           match record {
+               Ok(record) => log!(
+                   target: &name,
+                   record.level(),
+                   "[{:<5}:{}]: {}",
+                   record.module_path().unwrap_or("???"),
+                   record.line().map_or_else( || "??".to_string(), |l| l.to_string()),
+                   record.args()
+               ),
+               Err(e) => error!("cannot log module <{}>: {}", name, e)
+           }
+       }
+    });
 
     let store = Store::default();
 
@@ -142,13 +154,13 @@ fn main() -> anyhow::Result<()> {
 
     let invoke_function = Function::new_native_with_env(
         &store,
-        Env::new(),
+        Env::new(log_channel_tx.clone()),
         invoke
     );
 
     let log_function = Function::new_native_with_env(
         &store,
-        Env::new(),
+        Env::new(log_channel_tx.clone()),
         log_proxy
     );
 
