@@ -1,11 +1,11 @@
 [package]
-name = "rt-interface"
+name = "we-rt"
 version = "0.1.0"
 authors = ["lightsing <light.tsing@gmail.com>"]
 edition = "2018"
 
 [lib]
-name = "rt_interface"
+name = "we_rt"
 crate-type = ["rlib"]
 
 [dependencies]

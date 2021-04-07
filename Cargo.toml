@@ -17,7 +17,7 @@ tokio = { version = "1.4", features = ["rt-multi-thread", "sync", "macros"] }
 
 [workspace]
 members = [
-    "rt-interface",
+    "we-rt",
     "we-logger",
     "examples/hello"
 ]

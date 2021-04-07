@@ -11,5 +11,5 @@ crate-type = ["cdylib"]
 log = "0.4"
 wee_alloc = "0.4"
 cstr = "0.2"
-rt-interface = { path = "../../rt-interface" }
+we-rt = { path = "../../we-rt" }
 serde = { version = "1.0", features = ["derive"] }

@@ -2,7 +2,7 @@
 extern crate log;
 
 use cstr::cstr;
-use rt_interface::{init_logger, invoke};
+use we_rt::{init_logger, invoke};
 use serde::{Deserialize, Serialize};
 use std::ffi::CStr;
 use std::sync::Once;
@@ -27,6 +27,6 @@ extern "C" fn hello() {
     LOG_INIT.call_once(init_logger);
     info!("log inside wasm");
     let _test_string = String::from("hello world");
-    let result: Result<Response, _> = invoke("hello", "add_one", Arg { foo: 1 });
+    let result: Result<Response, _> = invoke("hello", "add_one", Arg { foo: 1 }).await;
     info!("{:?}", result.unwrap());
 }
