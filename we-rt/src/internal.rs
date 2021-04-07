@@ -91,7 +91,6 @@ where
 {
     let user_data = &mut f as *mut _ as *mut c_void;
 
-    // 调用提供的C-ABI接口
     unsafe {
         invoke(
             name.as_ptr(), name.len(),
