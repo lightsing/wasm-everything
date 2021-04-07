@@ -8,12 +8,12 @@ pub type Result<T> = core::result::Result<T, error::Error>;
 mod error;
 mod internal;
 mod mem;
-mod runtime;
+mod rt;
 
+pub use crate::rt::runtime::Runtime;
 pub use crate::internal::AsyncResult;
 use crate::internal::{invoke_callback, MaybeTaken};
-use core::borrow::BorrowMut;
-use core::ops::{Deref, DerefMut};
+use core::ops::Deref;
 
 pub fn invoke<N, M, A, R>(name: N, method: M, args: A) -> AsyncResult<Result<R>>
 where
