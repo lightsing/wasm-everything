@@ -6,6 +6,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 use alloc::vec::Vec;
 
+use once_cell::sync::OnceCell;
+
+static INSTANCE_ID: OnceCell<u64> = OnceCell::new();
+
 #[link(wasm_import_module = "__wasm_everything_runtime__")]
 extern "C" {
     pub fn invoke(
@@ -109,4 +113,14 @@ pub extern "C" fn call_invoke_callback_fn(
     user_data: *mut c_void,
 ) {
     unsafe { cb(user_data, ptr, size) }
+}
+
+#[no_mangle]
+pub extern "C" fn set_instance_id(id: u64) -> bool {
+    INSTANCE_ID.set(id).is_ok()
+}
+
+#[no_mangle]
+pub extern "C" fn get_instance_id() -> u64 {
+    *INSTANCE_ID.get().unwrap_or(&0u64)
 }
