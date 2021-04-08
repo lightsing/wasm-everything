@@ -10,6 +10,8 @@ use once_cell::sync::OnceCell;
 
 static INSTANCE_ID: OnceCell<u64> = OnceCell::new();
 
+pub type HostCallback = fn(*mut c_void, &[u8]);
+
 #[link(wasm_import_module = "__wasm_everything_runtime__")]
 extern "C" {
     pub fn invoke(
@@ -21,6 +23,13 @@ extern "C" {
         args_len: usize,
         cb: unsafe extern "C" fn(*mut c_void, *const u8, usize),
         user_data: *mut c_void,
+    );
+
+    pub fn callback(
+        ptr: *const u8,
+        len: usize,
+        cb: i64, // compiler error
+        user_data: i64,
     );
 }
 

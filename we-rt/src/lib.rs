@@ -11,9 +11,10 @@ mod mem;
 mod rt;
 
 pub use crate::rt::runtime::Runtime;
-pub use crate::internal::AsyncResult;
+pub use crate::internal::{AsyncResult, HostCallback};
 use crate::internal::{invoke_callback, MaybeTaken};
 use core::ops::Deref;
+use core::ffi::c_void;
 
 pub fn invoke<N, M, A, R>(name: N, method: M, args: A) -> AsyncResult<Result<R>>
 where
@@ -39,4 +40,15 @@ where
     };
 
     result
+}
+
+pub fn callback(data: &[u8], cb: i64, user_data: i64) {
+    unsafe {
+        internal::callback(
+            data.as_ptr(),
+            data.len(),
+            cb,
+            user_data
+        )
+    }
 }

@@ -2,9 +2,9 @@
 extern crate log;
 
 use cstr::cstr;
-use we_rt::{init_logger, invoke};
+use we_rt::{init_logger, invoke, callback, HostCallback};
 use serde::{Deserialize, Serialize};
-use std::ffi::CStr;
+use std::ffi::{CStr, c_void};
 use std::sync::Once;
 
 #[no_mangle]
@@ -23,13 +23,15 @@ struct Response {
 }
 
 #[no_mangle]
-extern "C" fn hello() {
+extern "C" fn hello(cb: i64, user_data: i64) {
     LOG_INIT.call_once(init_logger);
     let rt = we_rt::Runtime::new();
 
     rt.spawn(async move {
         info!("log inside wasm");
-        let _test_string = String::from("hello world");
+        let test_string = String::from("hello world");
+        callback(test_string.as_bytes(), cb, user_data);
+
         let result: Result<Response, _> = invoke("hello", "add_one", Arg { foo: 1 }).await;
         info!("{:?}", result.unwrap());
     })
