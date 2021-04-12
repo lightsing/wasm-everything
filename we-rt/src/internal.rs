@@ -1,12 +1,8 @@
-use alloc::rc::Rc;
-use core::cell::RefCell;
 use core::ffi::c_void;
-use core::future::Future;
-use core::pin::Pin;
-use core::task::{Context, Poll, Waker};
 use alloc::vec::Vec;
 
 use once_cell::sync::OnceCell;
+use semi_async::trampoline;
 
 static INSTANCE_ID: OnceCell<u64> = OnceCell::new();
 
@@ -31,71 +27,6 @@ extern "C" {
         cb: i64, // compiler error
         user_data: i64,
     );
-}
-
-unsafe extern "C" fn trampoline<F>(user_data: *mut c_void, ptr: *const u8, size: usize)
-where
-    F: FnMut(&[u8]),
-{
-    (*(user_data as *mut F))(alloc::slice::from_raw_parts(ptr, size))
-}
-
-#[derive(Debug, Clone)]
-pub struct AsyncResult<T> {
-    pub(crate) inner: Rc<RefCell<Inner<T>>>,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct Inner<T> {
-    pub(crate) task: Option<Waker>,
-    pub(crate) v: Option<MaybeTaken<T>>,
-}
-
-#[derive(Debug, Clone)]
-pub enum MaybeTaken<T> {
-    Taken,
-    StillThere(T),
-}
-
-impl<T> Default for AsyncResult<T> {
-    fn default() -> Self {
-        Self {
-            inner: Rc::new(RefCell::new(Inner::default()))
-        }
-    }
-}
-
-impl<T> Default for Inner<T> {
-    fn default() -> Self {
-        Self {
-            task: None,
-            v: None
-        }
-    }
-}
-
-impl<T> Default for MaybeTaken<T> {
-    fn default() -> Self {
-        Self::Taken
-    }
-}
-
-impl <T> Future for AsyncResult<T> {
-    type Output = T;
-
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut inner = self.inner.borrow_mut();
-
-        if inner.v.is_some() {
-            match inner.v.replace(MaybeTaken::Taken).unwrap() {
-                MaybeTaken::Taken => panic!("AsyncResult got poll after Ready"),
-                MaybeTaken::StillThere(v) => return Poll::Ready(v),
-            }
-        }
-
-        inner.task = Some(cx.waker().clone());
-        Poll::Pending
-    }
 }
 
 pub(crate) fn invoke_callback<F>(name: &[u8], method: &[u8], args: Vec<u8>, mut f: F)

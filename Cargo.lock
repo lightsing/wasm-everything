@@ -824,6 +824,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
+name = "semi-async"
+version = "0.1.0"
+
+[[package]]
 name = "serde"
 version = "1.0.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1242,6 +1246,7 @@ dependencies = [
  "bincode",
  "log",
  "once_cell",
+ "semi-async",
  "serde",
  "we-logger",
 ]

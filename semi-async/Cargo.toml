@@ -1,0 +1,9 @@
+[package]
+name = "semi-async"
+version = "0.1.0"
+authors = ["lightsing <light.tsing@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

@@ -125,11 +125,6 @@ struct Response {
     bar: i32,
 }
 
-unsafe fn trampoline<F>(user_data: *mut c_void, ptr: *mut u8, size: usize, cap: usize) where F: FnMut(Vec<u8>) {
-    let data = unsafe { Vec::from_raw_parts(ptr, size, cap) };
-    (*(user_data as *mut F))(data)
-}
-
 fn callback(env: &Env, ptr: i32, len: i32, cb: i64, user_data: i64) {
     use std::mem::{forget, transmute};
 
@@ -241,11 +236,7 @@ async fn main() -> anyhow::Result<()> {
 
     let instance = GLOBAL_INSTANCE_MAP.get(&this_instance_id).unwrap();
     let hello = instance.exports.get_function("hello")?;
-    fn call<F>(function: &Function, mut callback: F) where F: FnMut(Vec<u8>) {
-        let trampoline = trampoline::<F> as *mut c_void;
-        let user_data = &mut callback as *mut _ as *mut c_void;
-        function.call(&[Val::I64(trampoline as i64), Val::I64(user_data as i64)]);
-    }
+
     call(hello,|rt| {
         info!("{:?}", rt)
     });

@@ -2,9 +2,9 @@
 extern crate log;
 
 use cstr::cstr;
-use we_rt::{init_logger, invoke, callback, HostCallback};
+use we_rt::{init_logger, invoke, callback};
 use serde::{Deserialize, Serialize};
-use std::ffi::{CStr, c_void};
+use std::ffi::CStr;
 use std::sync::Once;
 
 #[no_mangle]

@@ -33,13 +33,13 @@ impl Runtime {
         super::task::Task::spawn(Box::pin(future), self.clone());
     }
 
-    pub(crate) fn push_task(&self, task: Task) {
+    pub fn push_task(&self, task: Task) {
         self.inner.borrow().push_task(task)
     }
 }
 
 impl RuntimeInner {
-    pub(crate) fn push_task(&self, task: Task) {
+    pub fn push_task(&self, task: Task) {
         self.tasks.borrow_mut().push_back(task);
 
         if !self.is_spinning.replace(true) {
