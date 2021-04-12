@@ -15,7 +15,9 @@ use wasmer::{
 };
 use we_logger::Record;
 use std::ops::Div;
+use crate::scheduler::WasmFunctionExecution;
 
+mod error;
 mod scheduler;
 
 static GLOBAL_INSTANCE_MAP: Lazy<CHashMap<u64, Instance>> = Lazy::new(|| CHashMap::new());
@@ -120,7 +122,7 @@ impl Env {
     }
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 struct Response {
     bar: i32,
 }
@@ -236,14 +238,8 @@ async fn main() -> anyhow::Result<()> {
 
     let instance = GLOBAL_INSTANCE_MAP.get(&this_instance_id).unwrap();
     let hello = instance.exports.get_function("hello")?;
-
-    call(hello,|rt| {
-        info!("{:?}", rt)
-    });
-
-    let invoke_callback = instance.exports.get_function("call_invoke_callback_fn")?;
-    // future call continues here TODO
-    // invoke_callback.call(&[ptr, size, cb, user_data]) // continue running
+    let response: Response = WasmFunctionExecution::new(hello).call().await?;
+    info!("{:?}", response);
 
     Ok(())
 }

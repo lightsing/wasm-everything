@@ -17,7 +17,7 @@ struct Arg {
     foo: i32,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 struct Response {
     bar: i32,
 }
@@ -29,8 +29,8 @@ extern "C" fn hello(cb: i64, user_data: i64) {
 
     rt.spawn(async move {
         info!("log inside wasm");
-        let test_string = String::from("hello world");
-        callback(test_string.as_bytes(), cb, user_data);
+        let response = Response { bar: 1 };
+        callback(&bincode::serialize(&response).unwrap(), cb, user_data);
 
         let result: Result<Response, _> = invoke("hello", "add_one", Arg { foo: 1 }).await;
         info!("{:?}", result.unwrap());

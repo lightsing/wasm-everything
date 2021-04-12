@@ -371,6 +371,7 @@ checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 name = "hello"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "cstr",
  "log",
  "serde",
@@ -1026,7 +1027,9 @@ dependencies = [
  "log",
  "once_cell",
  "pretty_env_logger",
+ "semi-async",
  "serde",
+ "thiserror",
  "tokio",
  "wasmer",
  "we-logger",
